@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config(); // Load environment variables from .env file
 
+// Log the email user to verify it's loaded correctly
+console.log('Email User:', process.env.EMAIL_USER);
+
 const app = express();
 app.use(express.json()); // Middleware to parse JSON request bodies
 
@@ -28,20 +31,36 @@ app.post('/rsvp', (req, res) => {
     if (!name || !email || !guests) {
         return res.status(400).json({ message: 'Name, email, and guests are required.' });
     }
+    if (!Number.isInteger(guests) || guests < 0) {
+        return res.status(400).json({ message: 'Guests must be a non-negative integer.' });
+    }
 
     const rsvpData = { name, email, guests: Number(guests) }; // Ensure guests is a number
     const filePath = path.join(__dirname, 'rsvps.json');
 
     fs.readFile(filePath, (err, data) => {
         let rsvps = [];
-        if (!err) rsvps = JSON.parse(data);
+        if (err) {
+            console.error('Error reading RSVP file:', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+
+        if (data.length > 0) {
+            try {
+                rsvps = JSON.parse(data);
+            } catch (parseError) {
+                console.error('Error parsing RSVP data:', parseError);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+        }
+        
         rsvps.push(rsvpData);
 
         fs.writeFile(filePath, JSON.stringify(rsvps, null, 2), (err) => {
             if (err) return res.status(500).json({ message: 'Internal Server Error' });
 
             const mailOptions = {
-                from: process.env.EMAIL_USER, // Use environment variable for sender email
+                from: process.env.EMAIL_USER,
                 to: 'Thembokuhlem07@gmail.com', // Recipient's email
                 subject: 'New RSVP for Night Party',
                 text: `New RSVP from ${name} (${email}).\nGuests: ${guests}`,
@@ -51,7 +70,7 @@ app.post('/rsvp', (req, res) => {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     console.error('Error sending email:', error);
-                    return res.status(500).json({ message: 'RSVP recorded, but email not sent', error });
+                    return res.json({ message: 'Thank you for your RSVP! However, we could not send an email notification.' });
                 }
                 res.json({ message: 'Thank you for your RSVP!' });
             });
@@ -65,14 +84,24 @@ app.get('/rsvps', (req, res) => {
 
     fs.readFile(filePath, (err, data) => {
         if (err) return res.status(500).json({ message: 'Internal Server Error' });
-        const rsvps = JSON.parse(data);
+        
+        let rsvps = [];
+        if (data.length > 0) {
+            try {
+                rsvps = JSON.parse(data);
+            } catch (parseError) {
+                console.error('Error parsing RSVP data:', parseError);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+        }
+        
         res.json(rsvps);
     });
 });
 
 // New endpoint to serve the RSVP list HTML page
 app.get('/rsvp-list', (req, res) => {
-    res.sendFile(path.join(__dirname, 'rsvp-list.html'));
+    res.sendFile(path.join(__dirname, 'public', 'rsvp-list.html'));
 });
 
 // Start the server
