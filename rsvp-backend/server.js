@@ -12,14 +12,15 @@ app.use(cors()); // Enable CORS for cross-origin requests
 
 // OAuth2 setup for Gmail
 const oauth2Client = new google.auth.OAuth2(
-    process.env.CLIENT_ID, // Your OAuth Client ID
-    process.env.CLIENT_SECRET, // Your OAuth Client Secret
-    "https://developers.google.com/oauthplayground" // Redirect URL
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    "http://localhost:5000/auth/google/callback" // Make sure this matches your redirect URI in Google Cloud
 );
 oauth2Client.setCredentials({
-    refresh_token: process.env.REFRESH_TOKEN // Your OAuth Refresh Token
+    refresh_token: process.env.REFRESH_TOKEN
 });
 
+// Email sending function
 async function sendEmail(name, email, guests) {
     try {
         const accessToken = await oauth2Client.getAccessToken();
@@ -38,7 +39,7 @@ async function sendEmail(name, email, guests) {
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: 'Thembokuhlem07@gmail.com', // Replace with your recipient's email
+            to: 'Thembokuhlem07@gmail.com', // Recipient's email
             subject: 'New RSVP for Night Party',
             text: `New RSVP from ${name} (${email}).\nGuests: ${guests}`,
         };
@@ -117,6 +118,26 @@ app.get('/rsvps', (req, res) => {
 // Endpoint to serve the RSVP list HTML page
 app.get('/rsvp-list', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'rsvp-list.html'));
+});
+
+// Callback route for Google OAuth2
+app.get('/auth/google/callback', async (req, res) => {
+    const { code } = req.query; // Get the authorization code from the query parameters
+
+    if (!code) {
+        return res.status(400).send('No code provided');
+    }
+
+    try {
+        const { tokens } = await oauth2Client.getToken(code); // Exchange the code for tokens
+        oauth2Client.setCredentials(tokens); // Set the tokens in the OAuth2 client
+
+        // You can redirect to a success page or handle the tokens further as needed
+        res.redirect('/'); // Redirecting to home page after successful authentication
+    } catch (error) {
+        console.error('Error retrieving access token', error);
+        res.status(500).send('Authentication failed');
+    }
 });
 
 // Start the server
