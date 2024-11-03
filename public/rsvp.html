@@ -12,7 +12,7 @@
             <h1>RSVP for Night Party</h1>
             <img src="night party img.jpg" alt="Night Party Image" style="width: 70%; height: auto; border-radius: 10px; margin: 20px 0;">
         </header>
-
+        
         <form id="rsvp-form" style="text-align: center; max-width: 500px; margin: auto;">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" autocomplete="name" required>
@@ -22,8 +22,10 @@
             <input type="email" id="email" name="email" autocomplete="email" required>
             <br><br>
 
-            <label for="guests">Number of Guests:</label>
-            <input type="number" id="guests" name="guests" min="1" value="1" required>
+          <!-- Guests input field in RSVP form -->
+<label for="guests">Number of Guests:</label>
+<input type="number" id="guests" name="guests" min="0" value="1" required>
+
             <br><br>
 
             <button type="submit">Submit RSVP</button>

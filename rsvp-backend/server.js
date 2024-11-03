@@ -1,90 +1,105 @@
-const nodemailer = require('nodemailer');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config(); // Load environment variables from .env file
-
-// Log the email user to verify it's loaded correctly
-console.log('Email User:', process.env.EMAIL_USER);
+const cors = require('cors');
+const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
+require('dotenv').config();
 
 const app = express();
-app.use(express.json()); // Middleware to parse JSON request bodies
+app.use(express.json());
+app.use(cors()); // Enable CORS for cross-origin requests
 
-// CORS setup (if necessary)
-const cors = require('cors');
-app.use(cors());
-
-// Create Nodemailer transporter
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER, // Use environment variable for sender email
-        pass: process.env.EMAIL_PASS, // Use environment variable for email password
-    },
+// OAuth2 setup for Gmail
+const oauth2Client = new google.auth.OAuth2(
+    process.env.CLIENT_ID, // Your OAuth Client ID
+    process.env.CLIENT_SECRET, // Your OAuth Client Secret
+    "https://developers.google.com/oauthplayground" // Redirect URL
+);
+oauth2Client.setCredentials({
+    refresh_token: process.env.REFRESH_TOKEN // Your OAuth Refresh Token
 });
 
-// Endpoint for RSVP
-app.post('/rsvp', (req, res) => {
+async function sendEmail(name, email, guests) {
+    try {
+        const accessToken = await oauth2Client.getAccessToken();
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                type: 'OAuth2',
+                user: process.env.EMAIL_USER,
+                clientId: process.env.CLIENT_ID,
+                clientSecret: process.env.CLIENT_SECRET,
+                refreshToken: process.env.REFRESH_TOKEN,
+                accessToken: accessToken.token,
+            },
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: 'Thembokuhlem07@gmail.com', // Replace with your recipient's email
+            subject: 'New RSVP for Night Party',
+            text: `New RSVP from ${name} (${email}).\nGuests: ${guests}`,
+        };
+
+        const result = await transporter.sendMail(mailOptions);
+        return result;
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw error;
+    }
+}
+
+// Endpoint to handle RSVPs
+app.post('/rsvp', async (req, res) => {
     const { name, email, guests } = req.body;
 
-    // Validate input
-    if (!name || !email || !guests) {
-        return res.status(400).json({ message: 'Name, email, and guests are required.' });
-    }
-    if (!Number.isInteger(guests) || guests < 0) {
-        return res.status(400).json({ message: 'Guests must be a non-negative integer.' });
+    if (!name || !email || !Number.isInteger(guests) || guests < 0) {
+        return res.status(400).json({ message: 'Invalid input. Name, email, and a non-negative number of guests are required.' });
     }
 
-    const rsvpData = { name, email, guests: Number(guests) }; // Ensure guests is a number
+    const rsvpData = { name, email, guests };
     const filePath = path.join(__dirname, 'rsvps.json');
 
     fs.readFile(filePath, (err, data) => {
         let rsvps = [];
-        if (err) {
-            console.error('Error reading RSVP file:', err);
-            return res.status(500).json({ message: 'Internal Server Error' });
-        }
-
-        if (data.length > 0) {
+        if (!err && data.length > 0) {
             try {
                 rsvps = JSON.parse(data);
             } catch (parseError) {
                 console.error('Error parsing RSVP data:', parseError);
-                return res.status(500).json({ message: 'Internal Server Error' });
             }
         }
         
         rsvps.push(rsvpData);
 
-        fs.writeFile(filePath, JSON.stringify(rsvps, null, 2), (err) => {
-            if (err) return res.status(500).json({ message: 'Internal Server Error' });
+        fs.writeFile(filePath, JSON.stringify(rsvps, null, 2), async (writeErr) => {
+            if (writeErr) {
+                console.error('Error writing to RSVP file:', writeErr);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
 
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
-                to: 'Thembokuhlem07@gmail.com', // Recipient's email
-                subject: 'New RSVP for Night Party',
-                text: `New RSVP from ${name} (${email}).\nGuests: ${guests}`,
-            };
-
-            // Send the email
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('Error sending email:', error);
-                    return res.json({ message: 'Thank you for your RSVP! However, we could not send an email notification.' });
-                }
+            try {
+                await sendEmail(name, email, guests);
                 res.json({ message: 'Thank you for your RSVP!' });
-            });
+            } catch (emailError) {
+                res.json({ message: 'Thank you for your RSVP! However, we could not send an email notification.' });
+            }
         });
     });
 });
 
-// New endpoint to get the RSVP list
+// Endpoint to retrieve RSVP list
 app.get('/rsvps', (req, res) => {
     const filePath = path.join(__dirname, 'rsvps.json');
 
     fs.readFile(filePath, (err, data) => {
-        if (err) return res.status(500).json({ message: 'Internal Server Error' });
-        
+        if (err) {
+            console.error('Error reading RSVP file:', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+
         let rsvps = [];
         if (data.length > 0) {
             try {
@@ -99,13 +114,13 @@ app.get('/rsvps', (req, res) => {
     });
 });
 
-// New endpoint to serve the RSVP list HTML page
+// Endpoint to serve the RSVP list HTML page
 app.get('/rsvp-list', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'rsvp-list.html'));
 });
 
 // Start the server
-const PORT = process.env.PORT || 3001; // Use port 3001 for the server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
