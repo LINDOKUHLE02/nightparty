@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP for Night Party</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header style="text-align: center;">
+            <h1>RSVP for Night Party</h1>
+            <img src="night party img.jpg" alt="Night Party Image" style="width: 70%; height: auto; border-radius: 10px; margin: 20px 0;">
+        </header>
+
+        <form id="rsvp-form" style="text-align: center; max-width: 500px; margin: auto;">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" autocomplete="name" required>
+            <br><br>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
+            <br><br>
+
+            <label for="guests">Guests:</label>
+            <input type="number" id="guests" name="guests" min="1" value="1" autocomplete="off" required>
+            <br><br>
+
+            <button type="submit">Submit RSVP</button>
+        </form>
+
+        <p style="text-align: center;"><a href="index.html">Back to Event Details</a></p>
+    </div>
+
+    <!-- JavaScript to handle form submission and fetch call -->
+    <script>
+        document.getElementById('rsvp-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const guests = document.getElementById('guests').value;
+
+            try {
+                const response = await fetch('http://localhost:3001/rsvp', { // Update the port here
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, guests }),
+                });
+
+                const data = await response.json();
+                alert(data.message);
+            } catch (error) {
+                alert("There was an error submitting your RSVP. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>

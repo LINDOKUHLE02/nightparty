@@ -1,0 +1,134 @@
+/* Reset default browser styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Base styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000000; /* Black background for neon effect */
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    padding: 20px;
+    text-align: center; /* Center all text within container */
+}
+
+/* Header, Section, and Footer styling */
+header, section, footer {
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+h1, h2 {
+    color: #39FF14; /* Neon green for headings */
+    margin-bottom: 10px;
+    font-weight: 900; /* Bold font */
+}
+
+/* Style for paragraphs */
+p {
+    font-weight: 700; /* Bold font */
+}
+
+/* Center list items */
+ul {
+    list-style-type: none; /* Remove default bullet points */
+    padding: 0; /* Remove padding */
+}
+
+ul li {
+    text-align: center; /* Center-align each list item */
+    margin: 5px 0; /* Add some space between items */
+}
+
+/* Button styling */
+button {
+    background-color: #ff00ff; /* Neon pink */
+    color: #000000;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+button:hover {
+    background-color: #00ffff; /* Neon cyan on hover */
+    color: #ffffff;
+}
+
+/* Link styling */
+a {
+    color: #00ffff; /* Neon cyan */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+/* Main background and container styling */
+body {
+    background-color: #000000;
+    color: #E0E0E0; /* Light grey for readability */
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background-color: #1a1a1a; /* Dark grey container */
+    border-radius: 8px;
+}
+
+/* Header styling */
+header h1 {
+    color: #9400D3; /* Purple for header */
+    font-size: 2.5em;
+    text-align: center;
+}
+
+header p {
+    color: #c8a2c8; /* Light purple for header descriptions */
+    text-align: center;
+}
+
+/* Section titles */
+section h2 {
+    color: #BA55D3; /* Softer purple for section headers */
+    border-bottom: 1px solid #9400D3;
+    padding-bottom: 5px;
+}
+
+/* Link styling */
+a {
+    color: #DA70D6; /* Neon pinkish-purple for links */
+    text-decoration: none;
+}
+
+a:hover {
+    color: #FF00FF; /* Brighter neon purple on hover */
+}
+
+/* Button styling */
+button {
+    background-color: #9400D3; /* Purple button */
+    color: #E0E0E0;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-co 
+
+    }
