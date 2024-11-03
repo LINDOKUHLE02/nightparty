@@ -11,15 +11,17 @@ app.use(express.json()); // Middleware to parse JSON request bodies
 const cors = require('cors');
 app.use(cors());
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Create Nodemailer transporter
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'lindo1234monana@gmail.com',
-        pass: 'txgfjnourmhmpyvd'
+        user: process.env.EMAIL_USER, // Use environment variable for sender email
+        pass: process.env.EMAIL_PASS, // Use environment variable for email password
     }
 });
-
 
 // Endpoint for RSVP
 app.post('/rsvp', (req, res) => {
@@ -35,7 +37,7 @@ app.post('/rsvp', (req, res) => {
 
     fs.readFile(filePath, (err, data) => {
         let rsvps = [];
-        if (!err) rsvps = JSON.parse(data);
+        if (!err && data.length > 0) rsvps = JSON.parse(data); // Avoid parsing empty file
         rsvps.push(rsvpData);
 
         fs.writeFile(filePath, JSON.stringify(rsvps, null, 2), (err) => {
@@ -73,7 +75,12 @@ app.get('/rsvps', (req, res) => {
 
 // New endpoint to serve the RSVP list HTML page
 app.get('/rsvp-list', (req, res) => {
-    res.sendFile(path.join(__dirname, 'rsvp-list.html'));
+    res.sendFile(path.join(__dirname, 'public', 'rsvp-list.html'));
+});
+
+// Serve the index.html file at the root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start the server
