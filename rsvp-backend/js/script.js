@@ -13,7 +13,7 @@ function submitRSVP(event) {
     const guests = document.getElementById('guests').value;
 
     // Fetch request to submit RSVP
-    fetch('http://localhost:3000/rsvp', {
+    fetch('http://localhost:3001/api/rsvp', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -10,7 +10,7 @@
     <div class="container">
         <header style="text-align: center;">
             <h1>RSVP for Night Party</h1>
-            <img src="nightparty image.jpg" alt="Night Party Image" style="width: 70%; height: auto; border-radius: 10px; margin: 20px 0;">
+            <img src="night party img.jpg" alt="Night Party Image" style="width: 70%; height: auto; border-radius: 10px; margin: 20px 0;">
         </header>
 
         <form id="rsvp-form" style="text-align: center; max-width: 500px; margin: auto;">
@@ -22,8 +22,8 @@
             <input type="email" id="email" name="email" autocomplete="email" required>
             <br><br>
 
-            <label for="guests">Guests:</label>
-            <input type="number" id="guests" name="guests" min="1" value="1" autocomplete="off" required>
+            <label for="guests">Number of Guests:</label>
+            <input type="number" id="guests" name="guests" min="1" value="1" required>
             <br><br>
 
             <button type="submit">Submit RSVP</button>
@@ -32,7 +32,6 @@
         <p style="text-align: center;"><a href="index.html">Back to Event Details</a></p>
     </div>
 
-    <!-- JavaScript to handle form submission and fetch call -->
     <script>
         document.getElementById('rsvp-form').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -42,7 +41,7 @@
             const guests = document.getElementById('guests').value;
 
             try {
-                const response = await fetch('http://localhost:3001/rsvp', { // Update the port here
+                const response = await fetch('http://localhost:3001/rsvp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, guests }),
