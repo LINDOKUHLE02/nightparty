@@ -9,6 +9,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors()); // Enable CORS for cross-origin requests
+app.use(express.static(path.join(__dirname, 'public')));
 
 // OAuth2 setup for Gmail
 const oauth2Client = new google.auth.OAuth2(
@@ -54,13 +55,18 @@ async function sendEmail(name, email, guests) {
 
 // Endpoint to handle RSVPs
 app.post('/rsvp', async (req, res) => {
+    console.log("Received RSVP data:", req.body);
     const { name, email, guests } = req.body;
 
-    if (!name || !email || !Number.isInteger(guests) || guests < 0) {
+    // Convert guests to an integer for validation
+    const guestCount = parseInt(guests, 10);
+
+    if (!name || !email || !Number.isInteger(guestCount) || guestCount < 0) {
+        console.log("Invalid input detected.");
         return res.status(400).json({ message: 'Invalid input. Name, email, and a non-negative number of guests are required.' });
     }
 
-    const rsvpData = { name, email, guests };
+    const rsvpData = { name, email, guests: guestCount };
     const filePath = path.join(__dirname, 'rsvps.json');
 
     fs.readFile(filePath, (err, data) => {
@@ -82,7 +88,7 @@ app.post('/rsvp', async (req, res) => {
             }
 
             try {
-                await sendEmail(name, email, guests);
+                await sendEmail(name, email, guestCount);
                 res.json({ message: 'Thank you for your RSVP!' });
             } catch (emailError) {
                 res.json({ message: 'Thank you for your RSVP! However, we could not send an email notification.' });
@@ -122,18 +128,16 @@ app.get('/rsvp-list', (req, res) => {
 
 // Callback route for Google OAuth2
 app.get('/auth/google/callback', async (req, res) => {
-    const { code } = req.query; // Get the authorization code from the query parameters
+    const { code } = req.query;
 
     if (!code) {
         return res.status(400).send('No code provided');
     }
 
     try {
-        const { tokens } = await oauth2Client.getToken(code); // Exchange the code for tokens
-        oauth2Client.setCredentials(tokens); // Set the tokens in the OAuth2 client
-
-        // You can redirect to a success page or handle the tokens further as needed
-        res.redirect('/'); // Redirecting to home page after successful authentication
+        const { tokens } = await oauth2Client.getToken(code);
+        oauth2Client.setCredentials(tokens);
+        res.redirect('/');
     } catch (error) {
         console.error('Error retrieving access token', error);
         res.status(500).send('Authentication failed');
