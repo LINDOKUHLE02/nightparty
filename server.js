@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
-    "http://localhost:5000/auth/google/callback" // Make sure this matches your redirect URI in Google Cloud
+    "http://localhost:5000/auth/google/callback" // Ensure this matches your redirect URI in Google Cloud
 );
 oauth2Client.setCredentials({
     refresh_token: process.env.REFRESH_TOKEN
@@ -78,7 +78,7 @@ app.post('/rsvp', async (req, res) => {
                 console.error('Error parsing RSVP data:', parseError);
             }
         }
-        
+
         rsvps.push(rsvpData);
 
         fs.writeFile(filePath, JSON.stringify(rsvps, null, 2), async (writeErr) => {
@@ -116,7 +116,7 @@ app.get('/rsvps', (req, res) => {
                 return res.status(500).json({ message: 'Internal Server Error' });
             }
         }
-        
+
         res.json(rsvps);
     });
 });
